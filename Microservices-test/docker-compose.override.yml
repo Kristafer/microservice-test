@@ -1,0 +1,27 @@
+version: '3.4'
+
+services:
+  authblazor:
+    environment:
+      - CatalogApi=http://localhost:5209
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - GRPC_PORT=8081
+    ports:
+      - "5109:8080"
+      - "6109:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+  catalog:
+    environment:
+      - IdentityUrl=http://localhost:5109
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - GRPC_PORT=8081
+    ports:
+      - "5209:8080"
+      - "6209:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
