@@ -1,15 +1,22 @@
 version: '3.4'
 
 services:
-  authblazor:
-    image: ${DOCKER_REGISTRY-}authblazor
-    build:
-      context: .
-      dockerfile: AuthBlazor/Dockerfile
+  # authblazor:
+  #   image: ${DOCKER_REGISTRY-}authblazor
+  #   build:
+  #     context: .
+  #     dockerfile: AuthBlazor/Dockerfile
 
   catalog:
     image: ${DOCKER_REGISTRY-}catalog
     build:
       context: .
       dockerfile: Catalog/Dockerfile
+
+
+  authrazor:
+    image: ${DOCKER_REGISTRY-}authrazor
+    build:
+      context: .
+      dockerfile: AuthRazor/Dockerfile
 

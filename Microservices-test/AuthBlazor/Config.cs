@@ -25,7 +25,7 @@ namespace AuthBlazor
             [
             new Client
                 {
-                    ClientId = "catalogswagger",
+                    ClientId = "catalog",
                     ClientSecrets = { new Secret("secret".Sha256()) },
                     ClientName = "Catalog Swagger UI",
                     AllowedGrantTypes = GrantTypes.Implicit,

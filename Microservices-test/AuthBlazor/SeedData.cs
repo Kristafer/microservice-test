@@ -3,6 +3,7 @@ using System;
 using AuthBlazor.Data;
 using Polly;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API;
 
@@ -15,7 +16,7 @@ public class SeedData
 
         await retryPolicy.ExecuteAsync(async () =>
         {
-            //await context.Database.MigrateAsync();
+            await context.Database.MigrateAsync();
 
             var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var alice = await userMgr.FindByNameAsync("alice");
@@ -31,6 +32,7 @@ public class SeedData
                     Id = Guid.NewGuid().ToString(),
                    
                     PhoneNumber = "1234567890",
+
                 };
 
                 var result = userMgr.CreateAsync(alice, "Pass123$").Result;

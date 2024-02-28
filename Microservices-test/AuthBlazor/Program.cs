@@ -1,4 +1,4 @@
-using AuthBlazor;
+
 using AuthBlazor.Components;
 using AuthBlazor.Components.Account;
 using AuthBlazor.Data;
@@ -36,34 +36,68 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
    //options.UseSqlServer(connectionString));
-    options.UseInMemoryDatabase("auth"));
+    options.UseSqlite(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
 
-builder.Services.AddIdentityServer(options =>
+builder.Services.AddBff();
+//builder.Services.AddIdentityServer(options =>
+//{
+//    options.Authentication.CookieLifetime = TimeSpan.FromHours(2);
+
+//    options.Events.RaiseFailureEvents = true;
+//    options.Events.RaiseErrorEvents = true;
+//    options.Events.RaiseSuccessEvents = true;
+//    options.Events.RaiseInformationEvents = true;
+//})
+//   .AddInMemoryIdentityResources(Config.IdentityResources)
+//   .AddInMemoryApiScopes(Config.ApiScopes)
+//   .AddInMemoryClients(Config.GetClients(builder.Configuration))
+//   .AddInMemoryApiResources(Config.ApiResourses)
+//   .AddAspNetIdentity<ApplicationUser>();
+
+
+builder.Services.AddAuthentication(options =>
 {
-    options.Authentication.CookieLifetime = TimeSpan.FromHours(2);
-
-    options.Events.RaiseFailureEvents = true;
-    options.Events.RaiseErrorEvents = true;
-    options.Events.RaiseSuccessEvents = true;
-    options.Events.RaiseInformationEvents = true;
+    options.DefaultScheme = "cookie";
+    options.DefaultChallengeScheme = "oidc";
+    options.DefaultSignOutScheme = "oidc";
 })
-   .AddInMemoryIdentityResources(Config.IdentityResources)
-   .AddInMemoryApiScopes(Config.ApiScopes)
-   .AddInMemoryClients(Config.GetClients(builder.Configuration))
-   .AddInMemoryApiResources(Config.ApiResourses)
-   .AddAspNetIdentity<ApplicationUser>();
+    .AddCookie("cookie", options =>
+    {
+        options.Cookie.Name = "__Host-blazor";
+        options.Cookie.SameSite = SameSiteMode.Strict;
+    })
+    .AddOpenIdConnect("oidc", options =>
+    {
+        //options.Authority = "https://demo.duendesoftware.com";
 
-builder.Services.AddAuthentication();
+        // confidential client using code flow + PKCE
+        options.ClientId = "interactive.confidential";
+        options.ClientSecret = "secret";
+        options.ResponseType = "code";
+        options.ResponseMode = "query";
+
+        options.MapInboundClaims = false;
+        options.GetClaimsFromUserInfoEndpoint = true;
+        options.SaveTokens = true;
+
+        // request scopes + refresh tokens
+        options.Scope.Clear();
+        options.Scope.Add("openid");
+        options.Scope.Add("profile");
+        options.Scope.Add("api");
+        options.Scope.Add("offline_access");
+        options.Scope.Add("catalog");
+    });
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
@@ -85,6 +119,11 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
+//app.UseIdentityServer();
+
+app.UseAuthentication();
+app.UseBff();
+app.UseAuthorization();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
